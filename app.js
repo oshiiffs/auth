@@ -1,23 +1,19 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const cors = require('cors');
 
-// Routes Here
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
-app.use(bodyParser.json());
-const cors = require('cors');
+
 app.use(cors());
+app.use(express.json());
 
-app.get('/', function(req, res) {
-    res.send("Sanota");
-});
-
-// Endpoint Here
 app.use('/api/user', authRoutes);
+app.use('/api/users', userRoutes);
 
-const PORT = 5000;
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
