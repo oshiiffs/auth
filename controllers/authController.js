@@ -7,7 +7,7 @@ const register = async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const [rows] = await pool.query('INSERT INTO users (username, password) VALUES (?, ?, ?)', [username, hashedPassword]);
+        const [rows] = await pool.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
 
         res.status(201).json({ message: 'User registered successfully!' });
     } catch (err) {
