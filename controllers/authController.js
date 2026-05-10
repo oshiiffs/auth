@@ -3,14 +3,23 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const register = async (req, res) => {
-    const {username,password} = req.body;
+    const { username, password } = req.body;
 
     try {
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
-        const [rows] = await pool.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
+
+        await pool.query(
+            'INSERT INTO users (username, password) VALUES (?, ?)',
+            [username, hashedPassword]
+        );
 
         res.status(201).json({ message: 'User registered successfully!' });
     } catch (err) {
+        console.error('Register error:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -19,7 +28,14 @@ const login = async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        const [rows] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
+        }
+
+        const [rows] = await pool.query(
+            'SELECT * FROM users WHERE username = ?',
+            [username]
+        );
 
         if (rows.length === 0) {
             return res.status(400).json({ error: 'Invalid Credentials' });
@@ -32,12 +48,16 @@ const login = async (req, res) => {
             return res.status(400).json({ error: 'Invalid Credentials' });
         }
 
-        const token = jwt.sign({ user_id: user.user_id, username: user.username }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRATION_TIME });
+        const token = jwt.sign(
+            { user_id: user.user_id, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_ACCESS_EXPIRATION_TIME || '1h' }
+        );
 
         res.json({ token });
 
     } catch (err) {
-
+        console.error('Login error:', err);
         res.status(500).json({ error: err.message });
     }
 };
